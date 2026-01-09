@@ -23,8 +23,21 @@ class DHLParcelSensor(CoordinatorEntity, SensorEntity):
     def native_value(self):
         """Aantal niet-geleverde pakketten."""
         parcels = self.coordinator.data or []
-        # Filter: Pakketten zijn actief als 'DELIVERED' NIET in de status voorkomt
-        active = [p for p in parcels if p.get('status') and 'DELIVERED' not in p.get('status')]
+        
+        active = []
+        for p in parcels:
+            # Check 1: Is de hoofdcategorie 'DELIVERED'? Dan negeren.
+            if p.get('category') == 'DELIVERED':
+                continue
+            
+            # Check 2: Bevat de status tekst 'DELIVERED'? Dan negeren (vangnet).
+            status = p.get('status', '')
+            if 'DELIVERED' in status:
+                continue
+                
+            # Als hij hier komt, is het een actief pakket
+            active.append(p)
+
         return len(active)
 
     @property
